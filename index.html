@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iQONE Style Multi-Server Post Gen</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .gen-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 { color: #ff2a2a; margin-bottom: 5px; }
+        p { color: #ccc; font-size: 14px; margin-bottom: 20px; }
+        
+        .paste-area {
+            width: 100%;
+            height: 90px;
+            background: #fff;
+            color: #555;
+            border: 2px dashed #ff2a2a;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-sizing: border-box;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .paste-area:focus {
+            outline: none;
+            background: #fdfdfd;
+        }
+        .paste-area.has-img {
+            border-style: solid;
+            border-color: #00ec9a;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #fff;
+            color: #000;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        #thumbPreviewBlock {
+            margin-bottom: 20px;
+            display: none;
+        }
+        #thumb-preview {
+            max-width: 180px;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #00ec9a;
+        }
+        button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #b80710; }
+        textarea {
+            width: 100%;
+            height: 250px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #222;
+            color: #00ec9a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-family: monospace;
+            box-sizing: border-box;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="gen-container">
+    <h2>🎬 iQONE Style Post Gen</h2>
+    <p>Paste image, movie title, and video link to generate iQONE theme HTML code</p>
+    
+    <div id="imagePasteBox" class="paste-area" contenteditable="true">
+        Click here & Paste (Ctrl+V) or Drop Movie Poster Image...
+    </div>
+
+    <input type="text" id="movieTitleInput" placeholder="Enter Movie Title (e.g., Movie Name 2026)...">
+    <input type="text" id="movieLinkInput" placeholder="Paste Video Embed/Iframe link here...">
+    
+    <div id="thumbPreviewBlock">
+        <p style="margin-bottom: 5px; color: #00ec9a;">Thumbnail Preview:</p>
+        <img id="thumb-preview" src="" alt="Poster Preview">
+    </div>
+
+    <button onclick="generateBloggerHTML()">Generate HTML</button>
+    
+    <textarea id="resultOutput" readonly placeholder="Your HTML code will be generated here..."></textarea>
+</div>
+
+<script>
+let base64Image = "";
+const pasteBox = document.getElementById('imagePasteBox');
+const previewBlock = document.getElementById("thumbPreviewBlock");
+const previewImg = document.getElementById("thumb-preview");
+
+pasteBox.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+            const blob = items[i].getAsFile();
+            processImageFile(blob);
+            return;
+        }
+    }
+    alert("No valid image found in clipboard! Please copy an image first.");
+});
+
+pasteBox.addEventListener('dragover', function(e) { e.preventDefault(); });
+pasteBox.addEventListener('drop', function(e) {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.indexOf("image") !== -1) {
+        processImageFile(files[0]);
+    } else {
+        alert("Please drop a valid image file.");
+    }
+});
+
+function processImageFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        base64Image = event.target.result;
+        pasteBox.className = "paste-area has-img";
+        pasteBox.innerHTML = "✅ Image Loaded Successfully!";
+        previewImg.src = base64Image;
+        previewBlock.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+}
+
+function generateBloggerHTML() {
+    let titleVal = document.getElementById("movieTitleInput").value.trim();
+    let inputVal = document.getElementById("movieLinkInput").value.trim();
+    
+    if (!base64Image) {
+        alert("Please paste or drop a movie thumbnail image first!");
+        return;
+    }
+    if (!titleVal) {
+        alert("Please enter the movie title!");
+        return;
+    }
+    if (!inputVal) {
+        alert("Please provide the video Embed/Iframe link!");
+        return;
+    }
+
+    let finalEmbedUrl = inputVal;
+    if (inputVal.includes("<iframe")) {
+        let srcMatch = inputVal.match(/src=["']([^"']+)["']/);
+        if (srcMatch && srcMatch[1]) {
+            finalEmbedUrl = srcMatch[1];
+        }
+    }
+
+    // অ্যাডস্টার অ্যাড কোডগুলো সঠিকভাবে এসকেপ (Escape) করা হয়েছে যাতে জেনারেট হওয়ার পর কোড ভেঙে না যায়
+    let adCode1 = '<script type="text/javascript">\natOptions = {\n\t\'key\' : \'cd82595b3c74faba850dc3d0e42a980b\',\n\t\'format\' : \'iframe\',\n\t\'height\' : 60,\n\t\'width\' : 468,\n\t\'params\' : {}\n};\n<\/script>\n<script type="text/javascript" src="https://www.highrevenueformat.com/cd82595b3c74faba850dc3d0e42a980b/invoke.js"><\/script>';
+    
+    let adCode2 = '<script type="text/javascript">\natOptions = {\n\t\'key\' : \'db133ad55e49680f9da9fc69d08e66c4\',\n\t\'format\' : \'iframe\',\n\t\'height\' : 90,\n\t\'width\' : 728,\n\t\'params\' : {}\n};\n<\/script>\n<script type="text/javascript" src="https://www.highrevenueformat.com/db133ad55e49680f9da9fc69d08e66c4/invoke.js"><\/script>';
+    
+    let adCode3 = '<script type="text/javascript">\natOptions = {\n\t\'key\' : \'f796886c817394554512fa165b770b5a\',\n\t\'format\' : \'iframe\',\n\t\'height\' : 250,\n\t\'width\' : 300,\n\t\'params\' : {}\n};\n<\/script>\n<script type="text/javascript" src="https://www.highrevenueformat.com/f796886c817394554512fa165b770b5a/invoke.js"><\/script>';
+
+    let adCode4 = '<script type="text/javascript">\natOptions = {\n\t\'key\' : \'e4e47c4bf73e8160150f530c41e560ff\',\n\t\'format\' : \'iframe\',\n\t\'height\' : 300,\n\t\'width\' : 160,\n\t\'params\' : {}\n};\n<\/script>\n<script type="text/javascript" src="https://www.highrevenueformat.com/e4e47c4bf73e8160150f530c41e560ff/invoke.js"><\/script>';
+
+    let adCode5 = '<script type="text/javascript">\natOptions = {\n\t\'key\' : \'884c71c4ec45ea1c5bc75bffe5d5233a\',\n\t\'format\' : \'iframe\',\n\t\'height\' : 50,\n\t\'width\' : 320,\n\t\'params\' : {}\n};\n<\/script>\n<script type="text/javascript" src="https://www.highrevenueformat.com/884c71c4ec45ea1c5bc75bffe5d5233a/invoke.js"><\/script>';
+
+    let directLink3 = `https://www.effectivecpmnetwork.com/nev6xxiqrw?key=68c5e01cecf8b74aa2855fd4d66a1360`;
+
+    let generatedTemplate = `<!-- iQONE Premium Single Post Layout Structure -->
+<div class="iqone-movie-post" style="max-width: 900px; margin: 0 auto; font-family: 'Segoe UI', Roboto, sans-serif; background: #0f1016; color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: left; border: 1px solid #1e293b; box-sizing: border-box;">
+    
+    <!-- Ad Slot 1 (468x60) Top Header -->
+    <div class="iq-ad-slot" style="text-align: center; margin-bottom: 20px; min-height: 60px; overflow: hidden;">
+        ${adCode1}
+    </div>
+
+    <!-- iQONE Header Section -->
+    <div class="iq-header" style="display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 25px;">
+        <div class="iq-poster" style="flex: 1; min-width: 220px; max-width: 260px; margin: 0 auto;">
+            <img src="${base64Image}" alt="${titleVal} Poster" style="width: 100%; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.8); border: 2px solid #222533; display: block; height: auto;">
+        </div>
+        <div class="iq-details" style="flex: 2; min-width: 280px;">
+            <h1 style="font-size: 26px; margin: 0 0 12px 0; color: #fff; font-weight: 700; line-height: 1.3;">${titleVal}</h1>
+            
+            <div class="iq-meta" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; font-size: 13px;">
+                <span style="background: #e50914; color: #fff; padding: 4px 10px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Ultra HD</span>
+                <span style="background: #222533; color: #ffb400; padding: 4px 10px; border-radius: 4px; font-weight: bold;">⭐ 8.5/10</span>
+                <span style="background: #222533; color: #abb7c4; padding: 4px 10px; border-radius: 4px;">📅 2026 Release</span>
+            </div>
+
+            <div class="iq-info-list" style="font-size: 14px; display: grid; grid-template-columns: 1fr; gap: 12px; color: #abb7c4; background: #161824; padding: 15px; border-radius: 8px; border: 1px solid #222533;">
+                <div><strong style="color: #fff; display: inline-block; width: 90px;">Movie Name:</strong> ${titleVal}</div>
+                <div><strong style="color: #fff; display: inline-block; width: 90px;">Language:</strong> Dual Audio (Hindi-English / Bengali)</div>
+                <div><strong style="color: #fff; display: inline-block; width: 90px;">Quality:</strong> Web-DL 720p / 1080p Smart Rip</div>
+                <div><strong style="color: #fff; display: inline-block; width: 90px;">Format:</strong> MKV High Speed Stream</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ad Slot 2 (728x90) Above Video Player -->
+    <div class="iq-ad-slot" style="text-align: center; margin: 20px 0; min-height: 90px; overflow: hidden;">
+        ${adCode2}
+    </div>
+
+    <!-- iQONE Video Player Area (Sandbox removed to fix block error) -->
+    <div class="iq-stream-section" style="background: #161824; border: 1px solid #222533; border-radius: 10px; padding: 15px; margin-bottom: 25px;">
+        <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #00ec9a; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+            🌐 Multi-Server Streaming (Watch Online: ${titleVal})
+        </h3>
+
+        <div class="web-embed-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-radius: 6px; border: 1px solid #222533;">
+            <iframe 
+                src="${finalEmbedUrl}" 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+                allowfullscreen="true" 
+                webkitallowfullscreen="true" 
+                mozallowfullscreen="true" 
+                scrolling="no" 
+                frameborder="0">
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Ad Slot 3 (300x250) Below Video Player -->
+    <div class="iq-ad-slot" style="text-align: center; margin: 20px 0; min-height: 250px; overflow: hidden;">
+        ${adCode3}
+    </div>
+
+    <!-- Ad Slot 4 (160x300) Extra Sidebar Banner -->
+    <div class="iq-ad-slot" style="text-align: center; margin: 20px 0; min-height: 300px; overflow: hidden;">
+        ${adCode4}
+    </div>
+
+    <!-- Ad Slot 5 (320x50) Before Download -->
+    <div class="iq-ad-slot" style="text-align: center; margin: 20px 0; min-height: 50px; overflow: hidden;">
+        ${adCode5}
+    </div>
+
+    <!-- iQONE Download Block Area -->
+    <div class="iq-download-box" style="text-align: center; background: #161824; border: 1px solid #222533; padding: 25px; border-radius: 10px;">
+        <h4 style="margin-top: 0; font-size: 16px; color: #fff; margin-bottom: 8px; font-weight: 600;">Fast Download Links - ${titleVal}</h4>
+        <p style="font-size: 13px; color: #abb7c4; margin-bottom: 20px; margin-top: 0;">Click below to access direct high-speed cloud download nodes.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 0 auto;">
+            <a href="${directLink3}" target="_blank" style="background: linear-gradient(135deg, #00ec9a 0%, #059669 100%); color: #000; padding: 14px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: block; box-shadow: 0 4px 12px rgba(0, 236, 154, 0.25);">
+                📥 Direct Download (1080p HD)
+            </a>
+            <a href="${directLink3}" target="_blank" style="background: #222533; color: #abb7c4; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: block; border: 1px solid #2d314a;">
+                📥 Mirror Cloud Stream (720p HD)
+            </a>
+        </div>
+    </div>
+
+</div>`;
+
+    let outputBox = document.getElementById("resultOutput");
+    outputBox.value = generatedTemplate;
+    outputBox.style.display = "block";
+    outputBox.select(); 
+}
+</script>
+
+</body>
+</html>
